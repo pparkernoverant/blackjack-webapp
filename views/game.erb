@@ -1,8 +1,99 @@
-<h4>Hi <%= session[:player_name] %></h4>
 
-Your cards are:
-<ul>
-	<% session[:player_cards].each do |card| %>
-		<li><%= card.to_s %></li>
+<!DOCTYPE html>
+<html>
+	<h1>Blackjack!</h1>
+
+	<!-- Turn Information -->
+	<% unless @winner %>
+		<h4><%= @whose_turn %>'s turn</h4>
+	<% else %>
+		<h4>Game Over</h4>
 	<% end %>
-</ul>
+
+	<!-- Dealer's Information -->	
+	<div class="well">
+		<!-- Dealer's Cards -->
+		<h4>Dealer's Cards: </h4>
+		<% session[:game].cards[session[:dealer]].each_with_index do |card, i| %>
+			<% if i == 0  && !@winner %>
+				<img class="card_image" src="/images/cards/cover.jpg" />
+			<% else %>
+				<img class="card_image" src="/images/cards/<%= card.suit.downcase %>_<%= card.face.downcase %>.jpg" />
+			<% end %>
+		<% end %>
+		
+		<br />
+		<br />
+
+		<!-- Dealer's Score -->
+		<strong>Dealer's Score: </strong>
+		<% unless @winner %>
+			unknown
+		<% else %>
+			<% 
+				possible_scores = Blackjack.get_possible_scores(session[:game].cards[session[:dealer]])
+			%>
+			<% if possible_scores.empty? %>
+				busted
+			<% else %>
+				<%= possible_scores.max %>
+			<% end %>
+		<% end %>
+
+		<br />
+
+		<!-- Dealer's Action -->
+		<strong>Dealer's Action: </strong>
+		<% if @dealer_action == 'hit' && !@winner %>
+			Hit
+			<form action="/reveal_dealer_card" method="post"><input type="submit" class="btn btn-primary" value="Reveal card" /></form>
+		<% elsif @dealer_action == 'stay' %>
+			Stay
+			<form action="/reveal_dealer_card" method="post"><input type="submit" class="btn btn-primary" value="Reveal card" disabled="disabled" /></form>
+		<% else %>
+			<% unless @winner %>
+				waiting . . .
+			<% end %>
+			<form action="/reveal_dealer_card" method="post"><input type="submit" class="btn btn-primary" value="Reveal card" disabled="disabled" /></form>
+		<% end %>
+	</div>
+
+	<!-- Player's Information -->
+	<div class="well">
+		<!-- Player's Cards-->
+		<h4>Your Cards:</h4>
+		<% session[:game].cards[session[:player]].each do |card| %>
+			<img class="card_image" src="/images/cards/<%= card.suit.downcase %>_<%= card.face.downcase %>.jpg" />
+		<% end %>
+		
+		<br />
+		<br />
+		
+		<!-- Player's Score -->
+		<strong>Your Score: </strong>
+		<% 
+			possible_scores = ''
+			Blackjack.get_possible_scores(session[:game].cards[session[:player]]).each do |score|
+				possible_scores << score.to_s + ' or '
+			end
+		%>
+		<%= possible_scores = possible_scores[0 ... possible_scores.size - 4] %>
+		<%= possible_scores = "busted!" if possible_scores == '' %>
+		
+		<br />
+
+		<!-- Player's Action -->
+		<strong>Your Action: </strong>
+		<form action='/player_action' method='post'>
+			<% if @enable_player_actions %>
+				<input type='submit' class='btn btn-success' name='player_action' value='Hit' />
+				<input type='submit' class='btn btn-warning' name='player_action' value='Stay' />
+			<% else %>
+				<input type='submit' class='btn btn-success' name='player_action' value='Hit' disabled='disabled' />
+				<input type='submit' class='btn btn-warning' name='player_action' value='Stay' disabled='disabled' />
+			<% end %>
+		</form>
+	</div>
+</html>
+
+

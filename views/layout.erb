@@ -11,17 +11,19 @@
       <div class="navbar-inner">
         <div class="container">
             <ul class="nav">
-              <li><a href="/">Nav Item</a></li>
+              <li><a href="/">New Game</a></li>
             </ul>
         </div>
       </div>
     </div>
 
   <div class="container">
-    <%if @error %>
-      <div class="alert alert-error"><%=@error%></div>
+    <%if @winner %>
+      <div class="alert alert-info"><%= @winner.name %> is the winner!</div>
+    <%elsif @error %>
+      <div class="alert alert-error"><%= @error %></div>
     <% end %>
-      <%= yield %>
+    <%= yield %>
   </div>
   </body>
 </html>
